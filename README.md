@@ -1,4 +1,12 @@
-# digitalspeed/ai-skills
+# AI Skills
+
+
+███████╗██╗  ██╗██╗██╗     ██╗     ███████╗
+██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝
+███████╗█████╔╝ ██║██║     ██║     ███████╗
+╚════██║██╔═██╗ ██║██║     ██║     ╚════██║
+███████║██║  ██╗██║███████╗███████╗███████║
+╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
 
 Reusable AI skills for agents like [Claude Code](https://claude.ai) and [Cursor](https://cursor.com). Install them with a single command to enhance your AI workflows with structured, brand-aligned procedural knowledge.
 
@@ -23,45 +31,40 @@ npx skills add digitalspeed/ai-skills
 
 This downloads the skill files into your project (typically in a `.skills/` directory), making them available to your AI agent.
 
-### Manual Installation
-
-Clone the repository and copy the skill files you need into your project's skills directory:
-
-```bash
-git clone https://github.com/digitalspeed/ai-skills.git
-cp ai-skills/brand-persona/SKILL.md .claude/skills/brand-persona.md
-cp ai-skills/case-study-generator/SKILL.md .claude/skills/case-study-generator.md
-```
-
-Adjust the target path to match your tool's convention (e.g., `.cursor/rules/` for Cursor).
-
 ## Usage
-
-### Claude Code
-
-Reference installed skills using slash commands or by mentioning the skill name in your prompt:
-
-```
-Apply the case-study-generator skill using the ds-brand persona to transform
-these raw notes into a case study: [paste your content]
-```
-
-### Cursor
-
-Use the `@` symbol to inject skill files as context:
-
-```
-Apply the @case-study-generator.md skill using the @brand-persona.md persona
-to transform this raw text into a case study: [paste your content]
-```
 
 ### Combining Skills
 
 Skills are designed to be composable. The **Case Study Generator** references the **Brand Persona** automatically, but you can explicitly combine any skills to layer capabilities:
 
+```text
+Use @brand-persona.md to write a blog post about AI.
 ```
-Use @brand-persona.md to write a blog post about our new SDK release.
+
+or 
+
+```text
+Apply the @case-study-generator.md skill using the @brand-persona.md persona
+to transform this raw text into a case study: [paste your content]
 ```
+
+### Example Using Cursor with the Claude Extension
+
+1. Create a new project and install skills:
+
+   ```bash
+   mkdir blogs
+   cd blogs
+   npx skills add digitalspeed/ai-skills
+   ```
+
+2. Install the **ds-brand** skill when prompted.
+3. Verify the file exists: `.cursor/skills/ds-brand/SKILL.md`
+4. Open the Claude extension panel in Cursor and try:
+
+   > Use @brand-persona.md to write a blog post about AI.
+
+The agent will find the correct persona and generate a markdown blog post about AI.
 
 ## How Skills Work
 
@@ -94,25 +97,6 @@ author: YourName
 - Step 4: Return clean Markdown.
 ```
 
-### Naming Convention
-
-Follow the `<namespace>/<skill-name>` pattern when registering with [skills.sh](https://skills.sh):
-
-```
-digitalspeed/case-study-generator
-digitalspeed/brand-persona
-```
-
-## Publishing to skills.sh
-
-To make your skills publicly discoverable:
-
-1. Push your skill files to GitHub.
-2. Go to [skills.sh](https://skills.sh) and sign in with GitHub.
-3. Submit your repository URL (`https://github.com/digitalspeed/ai-skills`).
-
-The platform indexes your repository and makes each skill searchable and installable.
-
 ## Updating Skills
 
 After making changes to skill files upstream, pull the latest versions into any project that uses them:
@@ -120,15 +104,3 @@ After making changes to skill files upstream, pull the latest versions into any 
 ```bash
 npx skills update
 ```
-
-## Contributing
-
-1. Fork this repository.
-2. Create a new branch for your skill (`git checkout -b skill/my-new-skill`).
-3. Add your skill file to the repository root following the template above.
-4. Update the **Available Skills** table in this README.
-5. Open a pull request with a description of the skill and example usage.
-
-## License
-
-MIT
