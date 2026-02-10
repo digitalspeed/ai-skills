@@ -1,13 +1,5 @@
 # AI Skills
 
-
-███████╗██╗  ██╗██╗██╗     ██╗     ███████╗
-██╔════╝██║ ██╔╝██║██║     ██║     ██╔════╝
-███████╗█████╔╝ ██║██║     ██║     ███████╗
-╚════██║██╔═██╗ ██║██║     ██║     ╚════██║
-███████║██║  ██╗██║███████╗███████╗███████║
-╚══════╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝╚══════╝
-
 Reusable AI skills for agents like [Claude Code](https://claude.ai) and [Cursor](https://cursor.com). Install them with a single command to enhance your AI workflows with structured, brand-aligned procedural knowledge.
 
 ## What Are AI Skills?
