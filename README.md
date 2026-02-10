@@ -8,10 +8,10 @@ Skills are Markdown instruction files that give AI agents domain-specific expert
 
 ## Available Skills
 
-| Skill | File | Description |
+| Skill | Path | Description |
 | --- | --- | --- |
-| **Brand Persona** | `brand-persona.md` | The official Digital Speed brand voice, values, and communication guidelines. Use as a foundation for any brand-aligned content. |
-| **Case Study Generator** | `case-study-generator.md` | Generates case studies using the Problem &rarr; Solution &rarr; Outcome framework, written in the Digital Speed voice. |
+| **Brand Persona** | `brand-persona/SKILL.md` | The official Digital Speed brand voice, values, and communication guidelines. Use as a foundation for any brand-aligned content. |
+| **Case Study Generator** | `case-study-generator/SKILL.md` | Generates case studies using the Problem &rarr; Solution &rarr; Outcome framework, written in the Digital Speed voice. |
 
 ## Installation
 
@@ -29,8 +29,8 @@ Clone the repository and copy the skill files you need into your project's skill
 
 ```bash
 git clone https://github.com/digitalspeed/ai-skills.git
-cp ai-skills/brand-persona.md .claude/skills/
-cp ai-skills/case-study-generator.md .claude/skills/
+cp ai-skills/brand-persona/SKILL.md .claude/skills/brand-persona.md
+cp ai-skills/case-study-generator/SKILL.md .claude/skills/case-study-generator.md
 ```
 
 Adjust the target path to match your tool's convention (e.g., `.cursor/rules/` for Cursor).
