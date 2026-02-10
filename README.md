@@ -30,13 +30,13 @@ This downloads the skill files into your project (typically in a `.skills/` dire
 Skills are designed to be composable. The **Case Study Generator** references the **Brand Persona** automatically, but you can explicitly combine any skills to layer capabilities:
 
 ```text
-Use @brand-persona.md to write a blog post about AI.
+Use @brand-persona to write a blog post about AI.
 ```
 
 or 
 
 ```text
-Apply the @case-study-generator.md skill using the @brand-persona.md persona
+Apply the @case-study-generator skill using the @brand-persona persona
 to transform this raw text into a case study: [paste your content]
 ```
 
@@ -54,7 +54,7 @@ to transform this raw text into a case study: [paste your content]
 3. Verify the file exists: `.cursor/skills/ds-brand/SKILL.md`
 4. Open the Claude extension panel in Cursor and try:
 
-   > Use @brand-persona.md to write a blog post about AI.
+   > Use @brand-persona to write a blog post about AI and write it to a markdown file.
 
 The agent will find the correct persona and generate a markdown blog post about AI.
 
