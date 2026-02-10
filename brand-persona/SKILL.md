@@ -1,5 +1,5 @@
 ---
-name: ds-brand
+name: brand-persona
 description: The official Digital Speed brand persona, voice, and values.
 author: DigitalSpeed
 ---
