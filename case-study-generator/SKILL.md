@@ -1,6 +1,6 @@
 ---
 name: case-study-generator
-description: Generates a case study aligned with Digital Speed brand voice.
+description: Generates a case study aligned with Digital Speed brand voice. Use when asked to write a case study.
 author: DigitalSpeed
 ---
 
