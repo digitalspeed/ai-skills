@@ -1,13 +1,13 @@
 ---
 name: case-study-generator
-description: Generates a case study aligned with Digital Speed brand voice. Use when asked to write a case study.
+description: Generates a case study aligned with Digital Speed brand voice. Use when asked to write a case study, success story, or client spotlight.
 author: DigitalSpeed
 ---
 
 # Case Study Generator Skill
 
 ## Instructions
-1. **Reference Brand:** First, read and adopt the persona defined in `ds-brand`. Ensure the tone is "Honest Above All," "Clear and Direct," and "Proactive."
+1. **Reference Brand:** First, read and adopt the persona defined in `brand-persona`. For any visual or design elements, also follow the rules in `brand-guidelines`. Ensure the tone is "Honest Above All," "Clear and Direct," and "Proactive."
 2. **Framework:** Use the Problem → Solution → Outcome framework.
 3. **Structure:**
    - **Title**: Results-focused headline.
