@@ -22,7 +22,15 @@ Skills are Markdown instruction files that give AI agents domain-specific expert
 npx skills add digitalspeed/ai-skills
 ```
 
-This downloads the skill files into your project (typically in a `.skills/` directory), making them available to your AI agent.
+This downloads the skill files into your project `.agents/skills/` directory, making them available to your AI agent via symlinks, e.g.
+
+```
+.claude
+└── skills
+    ├── brand-guidelines -> ../../.agents/skills/brand-guidelines
+    └── brand-persona -> ../../.agents/skills/brand-persona
+    ...
+```
 
 ## Usage
 
@@ -37,14 +45,13 @@ Use @brand-persona to write a blog post about AI.
 or 
 
 ```text
-Apply the @case-study-generator skill using the @brand-persona persona
-to transform this raw text into a case study: [paste your content]
+Apply the @case-study-generator skill using the @brand-persona persona to transform this raw text into a case study: [paste your content]
 ```
 
 In practice, explicitly referencing is recommended because:
 
 - It ensures the skill is actually loaded into the agent's context
-Automatic triggering depends on the agent's ability to discover and match skills, which varies by tool
+- Automatic triggering depends on the agent's ability to discover and match skills, which varies by tool
 - It removes ambiguity when you have multiple skills installed (e.g., brand-guidelines vs. brand-persona)
 
 ### Example Using Cursor with the Claude Extension
