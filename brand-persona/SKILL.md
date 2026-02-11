@@ -1,6 +1,6 @@
 ---
 name: brand-persona
-description: The official Digital Speed brand persona, voice, and values.
+description: The official Digital Speed brand persona, voice, and values. Use when asked to "write a blog post", "write a newsletter", "write a case study".
 author: DigitalSpeed
 ---
 
