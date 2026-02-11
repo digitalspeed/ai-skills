@@ -10,6 +10,7 @@ Skills are Markdown instruction files that give AI agents domain-specific expert
 
 | Skill | Path | Description |
 | --- | --- | --- |
+| **Brand Guidelines** | `brand-guidelines/SKILL.md` | The DigitalSpeed visual identity and styling system — logo, color, typography, photography, and graphic system. Use when generating any design asset, UI, layout, or code that must conform to the DigitalSpeed brand styling. |
 | **Brand Persona** | `brand-persona/SKILL.md` | The official Digital Speed brand voice, values, and communication guidelines. Use as a foundation for any brand-aligned content. |
 | **Case Study Generator** | `case-study-generator/SKILL.md` | Generates case studies using the Problem &rarr; Solution &rarr; Outcome framework, written in the Digital Speed voice. |
 
@@ -40,6 +41,12 @@ Apply the @case-study-generator skill using the @brand-persona persona
 to transform this raw text into a case study: [paste your content]
 ```
 
+In practice, explicitly referencing is recommended because:
+
+- It ensures the skill is actually loaded into the agent's context
+Automatic triggering depends on the agent's ability to discover and match skills, which varies by tool
+- It removes ambiguity when you have multiple skills installed (e.g., brand-guidelines vs. brand-persona)
+
 ### Example Using Cursor with the Claude Extension
 
 1. Create a new project and install skills:
@@ -47,11 +54,11 @@ to transform this raw text into a case study: [paste your content]
    ```bash
    mkdir blogs
    cd blogs
-   npx skills add digitalspeed/ai-skills
+   npx skills add digitalspeed/ai-skills --skill brand-persona
    ```
 
-2. Install the **ds-brand** skill when prompted.
-3. Verify the file exists: `.cursor/skills/ds-brand/SKILL.md`
+2. Install the skill when prompted.
+3. Verify the file exists: `.cursor/skills/brand-persona/SKILL.md`
 4. Open the Claude extension panel in Cursor and try:
 
    > Use @brand-persona to write a blog post about AI and write it to a markdown file.
@@ -71,8 +78,8 @@ Each skill is a Markdown file with YAML frontmatter. Use this template:
 ```markdown
 ---
 name: your-skill-name
-description: A concise summary of what the skill does.
-author: YourName
+description: A concise summary of what the skill does and when to use it.
+author: DigitalSpeed
 ---
 
 # Skill Title
