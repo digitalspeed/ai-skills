@@ -1,6 +1,7 @@
 ---
 name: article-generator
-description: Generates high-quality B2B technical articles following the "Digital Speed" methodology: DX-focused, Spec-Driven, and practitioner-led.
+description: Generates high-quality B2B technical articles following the "Digital Speed" methodology: DX-focused, Spec-Driven, and practitioner-led. Use when asked to create an article.
+author: DigitalSpeed
 ---
 
 # Article Generator Skill
