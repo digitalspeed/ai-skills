@@ -128,11 +128,21 @@ Once the user approves the structure, create tickets using the Jira MCP tools di
 1. Create each **Epic** (one per confirmed page/screen).
 2. Create each **Task** under its parent Epic (one per major section/organism).
 3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with a parent link to its Task. Do NOT embed sub-tasks as text in the Task description.
-4. For **Epics and Tasks**:
+4. For **Epics**:
    - Place the direct Figma node URL prominently at the top of the description.
-   - Use `get_design_context` or equivalent for detailed metadata — prefer structured data over screenshots for Task descriptions.
+   - Call `get_screenshot` on the Epic's top-level frame and attach the resulting image to the Jira ticket so the page layout is visible without opening Figma.
    - Use wiki-link referencing to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
-5. For **Sub-tasks**, use the following description format:
+   - Do NOT call `get_design_context` for Epics — they are grouping containers, not implementation specs.
+5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Also call `get_screenshot` on the node and attach it to the Jira ticket. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
+   - Layout: dimensions, spacing, padding, alignment
+   - Typography: font family, size, weight, line height for each text element
+   - Colours: fills, borders, and background values (hex or design token name)
+   - Component variants and states (hover, active, disabled, empty, error)
+   - Responsive or breakpoint behaviour if present
+   - Any interaction notes (e.g. scroll behaviour, sticky positioning)
+
+   Format this as a **Design Spec** section in the Task description, below the Figma URL. Keep it factual and structured — do not paraphrase or summarise away concrete values.
+6. For **Sub-tasks**, use the following description format:
 
    ```
    [Figma node URL]
