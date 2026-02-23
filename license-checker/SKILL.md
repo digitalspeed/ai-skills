@@ -1,5 +1,5 @@
 ---
-name: License Checker
+name: license-checker
 description: Audits node_modules for package licenses. Uses bash to resolve SPDX IDs without reading file contents into context. LLM inference is a last resort for a small residual set.
 author: DigitalSpeed
 ---
