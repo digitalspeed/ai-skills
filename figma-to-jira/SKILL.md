@@ -42,7 +42,6 @@ Set up `.mcp.json` with both MCP servers:
 }
 ```
 
-- **Figma** uses OAuth — Claude Code will open a browser window on first connection. No API key needed.
 - **Jira** requires an API token. Generate one at: https://id.atlassian.com/manage-profile/security/api-tokens
 
 Set up `CLAUDE.md` with your project defaults:
@@ -53,10 +52,24 @@ Set up `CLAUDE.md` with your project defaults:
 - Jira project key: ALPHA
 ```
 
-Start Claude Code and invoke the skill:
+Start Claude Code and authenticate the Figma MCP server:
 
 ```
 claude
+> /mcp
+```
+
+Select the **figma** server → **Authenticate** → a browser window will open for Figma OAuth. Once authenticated, add the following to your `CLAUDE.md` to pre-approve MCP tools so the skill runs without confirmation prompts:
+
+```markdown
+## Allowed Tools
+- mcp__figma__*
+- mcp__jira__*
+```
+
+Then invoke the skill:
+
+```
 > Use @figma-to-jira
 ```
 
@@ -77,7 +90,7 @@ Follow Atomic Design principles but **do not** create tickets for anything below
 
 - Ignore Atoms and Molecules as standalone tickets.
 - Group related components into a single Task.
-- Ignore global elements (Header, Footer) unless specifically instructed.
+- Create a dedicated Epic for global elements (e.g. "Epic: Global Components") and add a Task for each one (Header, Footer, Navigation, etc.). These are shared across pages and must be tracked.
 
 ## 4. Hierarchy & Mapping Logic
 
@@ -85,7 +98,9 @@ Structure the backlog using this mapping:
 
 - **Epic:** One Epic per Figma Page / screen (e.g., "Epic: Contact Us Page").
 - **Task:** One Task per major Section or Organism within that page.
-- **Sub-task:** Functional checkboxes or technical implementation details within a Task.
+- **Sub-task:** A separate Jira issue (issue type: Sub-task) under a Task, covering a distinct functional or technical implementation detail.
+
+**Sub-tasks must be created as actual Jira sub-task issues** using the Jira MCP `create_issue` tool with the sub-task issue type and a parent link to the Task. Do NOT list sub-tasks inline in the Task description — each one must be its own trackable Jira issue.
 
 Keep ticket counts minimal. Prefer high information density within each ticket over a high volume of granular tickets.
 
@@ -112,11 +127,24 @@ Once the user approves the structure, create tickets using the Jira MCP tools di
 
 1. Create each **Epic** (one per confirmed page/screen).
 2. Create each **Task** under its parent Epic (one per major section/organism).
-3. Create **Sub-tasks** under Tasks for functional or technical details.
-4. For every ticket:
+3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with a parent link to its Task. Do NOT embed sub-tasks as text in the Task description.
+4. For **Epics and Tasks**:
    - Place the direct Figma node URL prominently at the top of the description.
    - Use `get_design_context` or equivalent for detailed metadata — prefer structured data over screenshots for Task descriptions.
    - Use wiki-link referencing to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
+5. For **Sub-tasks**, use the following description format:
+
+   ```
+   [Figma node URL]
+
+   [What this sub-task implements — concrete, verifiable details.]
+
+   ## Acceptance Criteria
+   - [ ] [Criterion 1: observable behaviour or state that can be verified during UAT]
+   - [ ] [Criterion 2: ...]
+   ```
+
+   Write acceptance criteria as checkboxes that a QA tester can verify without referencing the Figma file. Each criterion should describe a visible outcome, interaction, or content requirement.
 
 ### Phase 3: Summary
 
