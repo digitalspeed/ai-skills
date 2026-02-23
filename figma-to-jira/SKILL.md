@@ -8,6 +8,8 @@ author: DigitalSpeed
 
 You are an expert Technical Product Manager. Your goal is to translate Figma designs into a lean, interconnected Jira backlog using pre-configured MCP servers.
 
+**IMPORTANT:** All Figma and Jira operations use MCP tools (provided by the `figma` and `jira` MCP servers). You MUST call these tools directly in the main conversation. Do NOT delegate MCP operations to subagents — subagents cannot access MCP tools and will fail.
+
 ## 1. Quick Start
 
 Create a project directory, install the skill, and configure your MCP servers and project defaults:
@@ -32,7 +34,7 @@ Set up `.mcp.json` with both MCP servers:
       "args": ["mcp-atlassian@latest"],
       "env": {
         "JIRA_URL": "https://your-instance.atlassian.net",
-        "JIRA_USERNAME": "you@example.com",
+        "JIRA_USERNAME": "you@digitalspeed.com",
         "JIRA_API_TOKEN": "your-api-token"
       }
     }
@@ -87,24 +89,39 @@ Structure the backlog using this mapping:
 
 Keep ticket counts minimal. Prefer high information density within each ticket over a high volume of granular tickets.
 
-## 5. MCP Execution Workflow
+## 5. Execution Workflow
 
-For every identified page in Figma:
+Execute this skill in three phases. **Stop and wait for user confirmation between each phase.**
 
-1. **Visual Anchor:** Run `getScreenshot` for the top-level Figma frame and attach it to the **Epic**.
-2. **Contextual Data:** Use `getDesignContext` for detailed metadata. Do not rely on screenshots for Task-level descriptions — prefer structured metadata.
-3. **Linking:**
-   - Every Task must contain a direct URL to its specific Figma node.
-   - Use Obsidian-style wiki-link referencing in descriptions to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
-4. **Description Formatting:**
-   - Place the Figma link prominently at the top of the description.
-   - Focus on Page + Template context: what the section is, what it contains, and how it relates to adjacent sections.
-   - Leave visual formatting of the description body to the user's domain conventions — do not impose a rigid template.
+### Phase 1: Analyze Figma Structure
 
-## 6. Delivery
+Use the Figma MCP tools directly (do not delegate to subagents):
 
-After all tickets are created, provide a summary to the user:
+1. Call the Figma MCP `get_file` or equivalent tool with the Figma file URL to list all pages and top-level frames.
+2. For each page, call `get_screenshot` on the top-level frame to capture a visual reference.
+3. Present the user with a proposed backlog structure:
+   - List each page → proposed Epic name
+   - Under each Epic, list the major sections/organisms → proposed Tasks
+   - Note any pages or sections you recommend skipping (and why)
+
+**Stop here and ask the user to confirm or adjust the proposed structure before creating any Jira tickets.**
+
+### Phase 2: Create Jira Tickets
+
+Once the user approves the structure, create tickets using the Jira MCP tools directly:
+
+1. Create each **Epic** (one per confirmed page/screen).
+2. Create each **Task** under its parent Epic (one per major section/organism).
+3. Create **Sub-tasks** under Tasks for functional or technical details.
+4. For every ticket:
+   - Place the direct Figma node URL prominently at the top of the description.
+   - Use `get_design_context` or equivalent for detailed metadata — prefer structured data over screenshots for Task descriptions.
+   - Use wiki-link referencing to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
+
+### Phase 3: Summary
+
+After all tickets are created, present the user with:
 
 - Total Epics, Tasks, and Sub-tasks created.
 - A list of Epic names with their Jira keys.
-- Any pages or sections that were intentionally skipped (and why).
+- Any pages or sections that were skipped (and why).
