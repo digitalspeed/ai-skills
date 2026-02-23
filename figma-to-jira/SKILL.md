@@ -124,9 +124,8 @@ Use the Figma MCP tools directly (do not delegate to subagents):
 1. Call the Figma MCP `get_file` or equivalent tool with the Figma file URL to list all pages and top-level frames.
 2. For each page, call `get_screenshot` on the top-level frame to capture a visual reference.
 3. Present the user with a proposed backlog structure:
-   - List each page → proposed Epic name
+   - List each page → proposed Epic name. Every page must have an Epic — do not omit any.
    - Under each Epic, list the major sections/organisms → proposed Tasks
-   - Note any pages or sections you recommend skipping (and why)
 
 **Stop here and ask the user to confirm or adjust the proposed structure before creating any Jira tickets.**
 
@@ -139,12 +138,23 @@ Once the user approves the structure, create tickets using the Jira MCP tools di
 1. Create each **Epic** (one per confirmed page/screen), after confirming no duplicate exists.
 2. Create each **Task** under its parent Epic (one per major section/organism), after confirming no duplicate exists.
 3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with a parent link to its Task. Do NOT embed sub-tasks as text in the Task description.
+**Attaching screenshots to tickets:** `get_screenshot` returns base64 image data — it cannot be passed directly to Jira. To attach a screenshot to any Epic or Task:
+   1. Call `get_screenshot` (use `type: "jpeg"` to avoid MIME type issues).
+   2. Use a `python3` Bash command to decode the base64 and write it to a temp file, e.g. `/tmp/figma-<nodeId>.jpg`.
+   3. Call `jira_update_issue` with `attachments: "/tmp/figma-<nodeId>.jpg"` to upload the file.
+   4. Delete the temp file after upload.
+
+   Example python3 command:
+   ```
+   python3 -c "import base64; open('/tmp/figma-NODE_ID.jpg','wb').write(base64.b64decode('BASE64_DATA'))"
+   ```
+
 4. For **Epics**:
    - Place the direct Figma node URL prominently at the top of the description.
-   - Call `get_screenshot` on the Epic's top-level frame. Try to attach the image to the Jira ticket using the Jira MCP attachment tool. If attachment fails or is unsupported, embed the Figma node URL as a clickable link with the label "View design in Figma" — do not silently skip the visual reference.
+   - Attach a screenshot using the steps above.
    - Use wiki-link referencing to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
    - Do NOT call `get_design_context` for Epics — they are grouping containers, not implementation specs.
-5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Call `get_screenshot` and attempt to attach the image to the ticket; fall back to a prominent Figma link if attachment is unsupported. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
+5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Attach a screenshot using the steps above. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
    - Layout: dimensions, spacing, padding, alignment
    - Typography: font family, size, weight, line height for each text element
    - Colours: fills, borders, and background values (hex or design token name)
@@ -173,4 +183,4 @@ After all tickets are created, present the user with:
 
 - Total Epics, Tasks, and Sub-tasks created.
 - A list of Epic names with their Jira keys.
-- Any pages or sections that were skipped (and why).
+- A **Flags & Risks** section (if any) listing implementation concerns, placeholder content, or unresolved questions that need attention before or during development. This is for risks only — do not use it to report skipped design elements.
