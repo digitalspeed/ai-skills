@@ -17,27 +17,27 @@ SPDX='MIT|ISC|BSD-[0-9]+-Clause|Apache-2\.0|GPL-[23]\.0(-only|-or-later)?|LGPL-[
 find node_modules -mindepth 2 -maxdepth 3 -name 'package.json' \
   ! -path '*/.bin/*' ! -path '*/node_modules/*/node_modules/*' | while read pjson; do
   dir=$(dirname "$pjson")
-  row=$(jq -r '[.name, .version, (.license // (.licenses | if type=="array" then map(.type//"") | join(" OR ") else (.//"") end) // "")] | @tsv' "$pjson" 2>/dev/null)
+  row=$(jq -r '[.name, .version, (.license // (.licenses | if type=="array" then map(.type//"") | join(" OR ") else (.//"") end) // ""), (.repository.url // .repository // "")] | @tsv' "$pjson" 2>/dev/null)
   lic=$(printf '%s' "$row" | cut -f3)
   if [ -z "$lic" ]; then
     lfile=$(find "$dir" -maxdepth 1 \( -iname 'license*' -o -iname 'licence*' -o -iname 'copying*' \) 2>/dev/null | head -1)
     match=$(grep -iom1 -E "$SPDX" "$lfile" 2>/dev/null | head -1)
     if [ -n "$match" ]; then
-      printf '%s\t~%s\tgrep\n' "$(printf '%s' "$row" | cut -f1-2)" "$match"
+      printf '%s\t%s*\tgrep\n' "$(printf '%s' "$row" | cut -f1-2,4)" "$match"
     else
-      printf '%s\tUNKNOWN\t—\n' "$(printf '%s' "$row" | cut -f1-2)"
+      printf '%s\tUNKNOWN\t—\n' "$(printf '%s' "$row" | cut -f1-2,4)"
     fi
   else
     printf '%s\tpackage.json\n' "$row"
   fi
 done
 ```
-Output is TSV: `name  version  license  source`. Rows with `UNKNOWN` source proceed to step 2.
+Output is TSV: `name  version  license  repository`. Rows where license is `UNKNOWN` proceed to step 2.
 
 **Step 2 — LLM inference for residual unknowns only:**
 For each `UNKNOWN` package, read the first **500 chars** of its license file (or README if absent). Apply:
 ```
-SPDX ID only. Prefix ~ if uncertain. Text:
+SPDX ID only. Append * if inferred from file (not package.json). Text:
 [500-char buffer]
 ```
 
@@ -45,17 +45,23 @@ SPDX ID only. Prefix ~ if uncertain. Text:
 
 ## 2. Output Format
 
-Markdown table sorted by license name:
+Tree format sorted alphabetically by `name@version`. An `*` suffix on a license means it was inferred from a file, not `package.json`.
 
-| Package | Version | License | Source |
-|---|---|---|---|
-| lodash | 4.17.21 | MIT | package.json |
-| some-lib | 1.2.0 | ~GPL-3.0 | grep (inferred) |
-| mystery | 3.0.0 | ~MIT | LLM (inferred) |
-| ghost-pkg | 1.0.0 | UNKNOWN | — |
-
-Summary:
 ```
-Scanned: N  |  Confirmed: N  |  Inferred (~): N  |  Unknown: N
+├─ lodash@4.17.21
+│  ├─ repository: https://github.com/lodash/lodash
+│  └─ licenses: MIT
+├─ some-lib@1.2.0
+│  ├─ repository: https://github.com/some/lib
+│  └─ licenses: GPL-3.0*
+└─ ghost-pkg@1.0.0
+   └─ licenses: UNKNOWN
+```
+
+Omit the `repository` line if the field is empty. Use `├─` for all entries except the last, which uses `└─`. Sub-fields always use `│  ├─` / `│  └─` (or `   ├─` / `   └─` under a `└─` parent).
+
+Summary line after the tree:
+```
+Scanned: N  |  Confirmed: N  |  Inferred (*): N  |  Unknown: N
 ⚠️  Copyleft: [packages with GPL / LGPL / AGPL / MPL / EUPL licenses]
 ```
