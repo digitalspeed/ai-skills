@@ -8,7 +8,7 @@ author: DigitalSpeed
 
 You are an expert Technical Product Manager. Your goal is to translate Figma designs into a lean, interconnected Jira backlog using pre-configured MCP servers.
 
-**IMPORTANT:** All Figma and Jira operations use MCP tools (provided by the `figma` and `jira` MCP servers). You MUST call these tools directly in the main conversation. Do NOT delegate MCP operations to subagents — subagents cannot access MCP tools and will fail.
+**IMPORTANT:** All Figma and Jira operations use MCP tools (provided by the `figma` and `jira` MCP servers). You MUST call these tools directly in the main conversation. Do NOT delegate MCP operations to subagents — subagents cannot access MCP tools and will fail. Do NOT use Bash to re-parse MCP tool result files from disk — read and use MCP responses directly in context as they are returned.
 
 ## 1. Quick Start
 
@@ -65,6 +65,15 @@ Select the **figma** server → **Authenticate** → a browser window will open 
 ## Allowed Tools
 - mcp__figma__*
 - mcp__jira__*
+```
+
+Add the following to your `CLAUDE.md` to pre-approve all tools the skill uses, so it runs without confirmation prompts:
+
+```markdown
+## Allowed Tools
+- mcp__figma__*
+- mcp__jira__*
+- Bash(python3:*)
 ```
 
 Then invoke the skill:
@@ -125,15 +134,17 @@ Use the Figma MCP tools directly (do not delegate to subagents):
 
 Once the user approves the structure, create tickets using the Jira MCP tools directly:
 
-1. Create each **Epic** (one per confirmed page/screen).
-2. Create each **Task** under its parent Epic (one per major section/organism).
+**Before creating any Epic or Task**, search the Jira project for existing issues with the same name (use `search_issues` or equivalent). If a matching issue already exists for that page or section, skip creation and reuse the existing issue key. Never create duplicate tickets.
+
+1. Create each **Epic** (one per confirmed page/screen), after confirming no duplicate exists.
+2. Create each **Task** under its parent Epic (one per major section/organism), after confirming no duplicate exists.
 3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with a parent link to its Task. Do NOT embed sub-tasks as text in the Task description.
 4. For **Epics**:
    - Place the direct Figma node URL prominently at the top of the description.
-   - Call `get_screenshot` on the Epic's top-level frame and attach the resulting image to the Jira ticket so the page layout is visible without opening Figma.
+   - Call `get_screenshot` on the Epic's top-level frame. Try to attach the image to the Jira ticket using the Jira MCP attachment tool. If attachment fails or is unsupported, embed the Figma node URL as a clickable link with the label "View design in Figma" — do not silently skip the visual reference.
    - Use wiki-link referencing to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
    - Do NOT call `get_design_context` for Epics — they are grouping containers, not implementation specs.
-5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Also call `get_screenshot` on the node and attach it to the Jira ticket. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
+5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Call `get_screenshot` and attempt to attach the image to the ticket; fall back to a prominent Figma link if attachment is unsupported. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
    - Layout: dimensions, spacing, padding, alignment
    - Typography: font family, size, weight, line height for each text element
    - Colours: fills, borders, and background values (hex or design token name)
