@@ -13,6 +13,8 @@ Skills are Markdown instruction files that give AI agents domain-specific expert
 | **Brand Guidelines** | `brand-guidelines/SKILL.md` | The DigitalSpeed visual identity and styling system — logo, color, typography, photography, and graphic system. Use when generating any design asset, UI, layout, or code that must conform to the DigitalSpeed brand styling. |
 | **Brand Persona** | `brand-persona/SKILL.md` | The official Digital Speed brand voice, values, and communication guidelines. Use as a foundation for any brand-aligned content. |
 | **Case Study Generator** | `case-study-generator/SKILL.md` | Generates case studies using the Problem &rarr; Solution &rarr; Outcome framework, written in the Digital Speed voice. |
+| **Figma to Jira** | `figma-to-jira/SKILL.md` | Orchestrates Jira ticket creation from Figma designs using Atomic Design principles. Use when initializing a project or syncing design specs to Jira for development. |
+| **License Checker** | `license-checker/SKILL.md` | Audits `node_modules` for package licenses and produces a compliance report. Use when reviewing open-source dependencies for license risk. |
 | **Tutorial Generator** | `tutorial-generator/SKILL.md` | Generates step-by-step tutorials and how-to guides in the Digital Speed voice. Use when asked to write a tutorial, setup guide, or walkthrough. |
 
 ## Installation
