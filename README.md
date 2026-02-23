@@ -73,6 +73,61 @@ In practice, explicitly referencing is recommended because:
 
 The agent will find the correct persona and generate a markdown blog post about AI.
 
+### Example Using Figma to Jira
+
+1. Create a project directory and install the skill:
+
+   ```bash
+   mkdir ai-skills-<project> && cd ai-skills-<project>
+   npx skills add digitalspeed/ai-skills --skill figma-to-jira
+   ```
+
+2. Set up `.mcp.json` with both MCP servers:
+
+   ```json
+   {
+     "mcpServers": {
+       "figma": {
+         "type": "http",
+         "url": "https://mcp.figma.com/mcp"
+       },
+       "jira": {
+         "type": "stdio",
+         "command": "uvx",
+         "args": ["mcp-atlassian@latest"],
+         "env": {
+           "JIRA_URL": "https://your-instance.atlassian.net",
+           "JIRA_USERNAME": "you@digitalspeed.com",
+           "JIRA_API_TOKEN": "your-api-token"
+         }
+       }
+     }
+   }
+   ```
+
+3. In Jira, create a new Scrum board: **Create project → Software development → Scrum**.
+
+4. Set up `CLAUDE.md` with your project defaults:
+
+   ```markdown
+   ## Project Config
+   - Figma: <insert figma url of project here>
+   - Jira project key: <insert jira project key here>
+   ```
+
+5. Authenticate the Figma MCP server via OAuth:
+
+   1. Open Claude Code in your project directory.
+   2. Type `/mcp` — you should see the Figma and Jira servers listed.
+   3. Select **figma → Authenticate** — this opens the browser for OAuth.
+   4. Once both servers show as connected, proceed to the next step.
+
+6. Run Claude Code and invoke the skill:
+
+   > Use @figma-to-jira
+
+   Claude will read your Figma design and create the corresponding Jira epics, tasks, and tickets.
+
 ## How Skills Work
 
 1. **Discovery** -- The AI agent reads the YAML frontmatter and instructions at the top of each skill file.
