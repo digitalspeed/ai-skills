@@ -121,11 +121,25 @@ Execute this skill in three phases. **Stop and wait for user confirmation betwee
 
 Use the Figma MCP tools directly (do not delegate to subagents):
 
-1. Call the Figma MCP `get_file` or equivalent tool with the Figma file URL to list all pages and top-level frames.
-2. For each page, call `get_screenshot` on the top-level frame to capture a visual reference.
-3. Present the user with a proposed backlog structure:
-   - List each page → proposed Epic name. Every page must have an Epic — do not omit any.
-   - Under each Epic, list the major sections/organisms → proposed Tasks
+1. Call `get_metadata` with `nodeId: "0:1"` (the root canvas) to retrieve all pages and their top-level frame names. This call may return a large response — read it in context; do not write it to disk.
+
+2. **Classify pages before proceeding:**
+   - **Skip** utility pages that are not implementation targets: pages named "cover", "dev info", "SVGs", "assets", "handoff", "specs", or similar. Flag these to the user.
+   - **Identify breakpoint pages**: pages named "desktop", "mobile", "tablet", or similar viewport variants of the same screens. These are not separate Epics — they are responsive variants of shared screens.
+   - **Implementation pages**: everything else becomes an Epic.
+
+3. **For files with breakpoint pages** (desktop/mobile/tablet structure):
+   - Cross-reference the frame names across breakpoint pages to identify matching screens (e.g., "About" appears on Desktop, Mobile, and Tablet pages).
+   - Create **one Epic per screen/section** (e.g., "Epic: About Page"), not one Epic per breakpoint page.
+   - Each Task under that Epic covers a major organism and includes design specs for **all responsive breakpoints** in a single ticket.
+   - Fetch metadata and screenshots for each breakpoint variant of a section by using the node IDs from the respective pages.
+
+4. For each proposed Epic (screen/section), call `get_screenshot` on the desktop-breakpoint frame (or the primary frame if no desktop page exists) to capture a visual reference.
+
+5. Present the user with a proposed backlog structure:
+   - List each screen/section → proposed Epic name. Every implementation page or screen must have an Epic — do not omit any.
+   - Note which pages were skipped and why.
+   - Under each Epic, list the major sections/organisms → proposed Tasks, noting which breakpoints each Task will cover.
 
 **Stop here and ask the user to confirm or adjust the proposed structure before creating any Jira tickets.**
 
@@ -159,8 +173,24 @@ Once the user approves the structure, create tickets using the Jira MCP tools di
    - Typography: font family, size, weight, line height for each text element
    - Colours: fills, borders, and background values (hex or design token name)
    - Component variants and states (hover, active, disabled, empty, error)
-   - Responsive or breakpoint behaviour if present
    - Any interaction notes (e.g. scroll behaviour, sticky positioning)
+
+   **For files with breakpoint pages**, call `get_metadata` and `get_design_context` for the matching node on **each breakpoint page** (desktop, tablet, mobile). Structure the Design Spec with a sub-section per breakpoint:
+
+   ```
+   ## Design Spec
+
+   ### Desktop (1728px)
+   [specs from desktop page node]
+
+   ### Tablet (768px)
+   [specs from tablet page node]
+
+   ### Mobile (375px)
+   [specs from mobile page node]
+   ```
+
+   Include a Figma node URL for each breakpoint at the top of its sub-section. Attach the desktop screenshot to the ticket; note the other breakpoint URLs inline.
 
    Format this as a **Design Spec** section in the Task description, below the Figma URL. Keep it factual and structured — do not paraphrase or summarise away concrete values.
 6. For **Sub-tasks**, use the following description format:
