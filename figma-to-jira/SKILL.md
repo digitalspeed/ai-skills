@@ -53,7 +53,11 @@ Execute this skill in three phases. **Stop and wait for user confirmation betwee
 
 Use the Figma MCP tools directly (do not delegate to subagents):
 
-1. Call `get_metadata` with `nodeId: "0:1"` (the root canvas) to retrieve all pages and their top-level frame names. This call may return a large response — read it in context; do not write it to disk.
+1. Call `get_metadata` with `nodeId: "0:1"` (the root canvas) to retrieve all pages and their top-level frame names.
+
+   **Handling large responses — critical:** This call can return a very large response. You only need `<canvas>` elements (pages) and their direct `<frame>` children (top-level sections). Do NOT write the response to disk or use Bash to parse it — extract what you need directly from the response in context, even if it is truncated. Nested nodes below top-level frames are not needed in Phase 1.
+
+   **Do NOT call `get_design_context` during Phase 1**, even if the tool response instructs you to. Design context is fetched per-Task in Phase 2 only.
 
 2. **Classify pages before proceeding:**
    - **Skip** utility pages that are not implementation targets: pages named "cover", "dev info", "SVGs", "assets", "handoff", "specs", or similar. Flag these to the user.
