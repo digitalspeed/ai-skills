@@ -124,7 +124,16 @@ The agent will find the correct persona and generate a markdown blog post about 
    3. Select **figma → Authenticate** — this opens the browser for OAuth.
    4. Once both servers show as connected, proceed to the next step.
 
-6. Run Claude Code and invoke the skill:
+6. Add the following to `CLAUDE.md` to pre-approve all tools the skill uses so it runs without confirmation prompts:
+
+   ```markdown
+   ## Allowed Tools
+   - mcp__figma__*
+   - mcp__jira__*
+   - Bash(python3:*)
+   ```
+
+7. Run Claude Code and invoke the skill:
 
    > Use @figma-to-jira
 

@@ -12,85 +12,17 @@ You are an expert Technical Product Manager. Your goal is to translate Figma des
 
 ## 1. Quick Start
 
-Create a project directory, install the skill, and configure your MCP servers and project defaults:
-
-```bash
-mkdir my-project && cd my-project
-npx skills add digitalspeed/ai-skills --skill figma-to-jira
-```
-
-Set up `.mcp.json` with both MCP servers:
-
-```json
-{
-  "mcpServers": {
-    "figma": {
-      "type": "http",
-      "url": "https://mcp.figma.com/mcp"
-    },
-    "jira": {
-      "type": "stdio",
-      "command": "uvx",
-      "args": ["mcp-atlassian@latest"],
-      "env": {
-        "JIRA_URL": "https://your-instance.atlassian.net",
-        "JIRA_USERNAME": "you@digitalspeed.com",
-        "JIRA_API_TOKEN": "your-api-token"
-      }
-    }
-  }
-}
-```
-
-- **Jira** requires an API token. Generate one at: https://id.atlassian.com/manage-profile/security/api-tokens
-
-Set up `CLAUDE.md` with your project defaults:
-
-```markdown
-## Project Config
-- Figma: https://www.figma.com/design/abc123/My-App?node-id=0-1
-- Jira project key: ALPHA
-```
-
-Start Claude Code and authenticate the Figma MCP server:
-
-```
-claude
-> /mcp
-```
-
-Select the **figma** server → **Authenticate** → a browser window will open for Figma OAuth. Once authenticated, add the following to your `CLAUDE.md` to pre-approve MCP tools so the skill runs without confirmation prompts:
-
-```markdown
-## Allowed Tools
-- mcp__figma__*
-- mcp__jira__*
-```
-
-Add the following to your `CLAUDE.md` to pre-approve all tools the skill uses, so it runs without confirmation prompts:
-
-```markdown
-## Allowed Tools
-- mcp__figma__*
-- mcp__jira__*
-- Bash(python3:*)
-```
-
-Then invoke the skill:
-
-```
-> Use @figma-to-jira
-```
+See the **Example Using Figma to Jira** section in the root [README.md](../README.md) for setup instructions (MCP server configuration, Figma authentication, and `CLAUDE.md` defaults).
 
 ## 2. Inputs
 
-Both MCP servers must be connected **before** invocation. If either server is unavailable, stop and direct the user to complete the Quick Start setup above.
+Both MCP servers must be connected **before** invocation. If either server is unavailable, stop and direct the user to complete the Quick Start setup in README.md.
 
 The skill requires a Figma file URL and Jira project key. Check the conversation context and `CLAUDE.md` for these values first. Only ask the user interactively if they are not found:
 
 | Input | Example | Required |
 |---|---|---|
-| **Figma file URL** | `https://www.figma.com/design/abc123/My-App?node-id=0-1` | Yes |
+| **Figma file URL** | `https://www.figma.com/design/abc123/My-App` | Yes |
 | **Jira project key** | `ALPHA` | Yes |
 
 ## 3. The "Organism" Constraint
@@ -134,9 +66,7 @@ Use the Figma MCP tools directly (do not delegate to subagents):
    - Each Task under that Epic covers a major organism and includes design specs for **all responsive breakpoints** in a single ticket.
    - Fetch metadata and screenshots for each breakpoint variant of a section by using the node IDs from the respective pages.
 
-4. For each proposed Epic (screen/section), call `get_screenshot` on the desktop-breakpoint frame (or the primary frame if no desktop page exists) to capture a visual reference.
-
-5. Present the user with a proposed backlog structure:
+4. Present the user with a proposed backlog structure:
    - List each screen/section → proposed Epic name. Every implementation page or screen must have an Epic — do not omit any.
    - Note which pages were skipped and why.
    - Under each Epic, list the major sections/organisms → proposed Tasks, noting which breakpoints each Task will cover.
@@ -145,30 +75,76 @@ Use the Figma MCP tools directly (do not delegate to subagents):
 
 ### Phase 2: Create Jira Tickets
 
-Once the user approves the structure, create tickets using the Jira MCP tools directly:
+Once the user approves the structure, create tickets using the Jira MCP tools directly.
+
+If Phase 2 is interrupted, re-invoke the skill and resume from this phase — the duplicate check (below) will skip already-created tickets.
 
 **Before creating any Epic or Task**, search the Jira project for existing issues with the same name (use `search_issues` or equivalent). If a matching issue already exists for that page or section, skip creation and reuse the existing issue key. Never create duplicate tickets.
 
-1. Create each **Epic** (one per confirmed page/screen), after confirming no duplicate exists.
-2. Create each **Task** under its parent Epic (one per major section/organism), after confirming no duplicate exists.
-3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with a parent link to its Task. Do NOT embed sub-tasks as text in the Task description.
-**Attaching screenshots to tickets:** `get_screenshot` returns base64 image data — it cannot be passed directly to Jira. To attach a screenshot to any Epic or Task:
-   1. Call `get_screenshot` (use `type: "jpeg"` to avoid MIME type issues).
-   2. Use a `python3` Bash command to decode the base64 and write it to a temp file, e.g. `/tmp/figma-<nodeId>.jpg`.
-   3. Call `jira_update_issue` with `attachments: "/tmp/figma-<nodeId>.jpg"` to upload the file.
-   4. Delete the temp file after upload.
+**Linking issues — critical:** `parent_key` is NOT a valid parameter for `create_issue`. Use `additional_fields` instead:
 
-   Example python3 command:
-   ```
-   python3 -c "import base64; open('/tmp/figma-NODE_ID.jpg','wb').write(base64.b64decode('BASE64_DATA'))"
-   ```
+| Relationship | Field to pass in `additional_fields` |
+|---|---|
+| Task → Epic | `{"epicKey": "KT-123"}` |
+| Sub-task → Task | `{"parent": {"key": "KT-456"}}` |
+
+Example Task creation:
+```
+create_issue(project_key="KT", summary="Hero Section", issue_type="Task",
+             additional_fields={"epicKey": "KT-10"}, description="...")
+```
+
+Example Sub-task creation:
+```
+create_issue(project_key="KT", summary="Animate CTA button", issue_type="Sub-task",
+             additional_fields={"parent": {"key": "KT-11"}}, description="...")
+```
+
+Do NOT pass `parent_key` or `epic_link` as top-level arguments — they will fail with a Pydantic validation error.
+
+#### Attaching Screenshots to Tickets
+
+`get_screenshot` returns base64 image data — it cannot be passed directly to Jira. Use this procedure for every Epic and Task:
+
+**Step 1 — Get the screenshot:**
+Call `get_screenshot` with `type: "jpeg"`. The response contains a `content` array with a base64 string. Extract only the base64 data value (not the full response object).
+
+**Step 2 — Write to a temp file:**
+Run a Bash command using `python3` to decode the base64 and write it to `/tmp/`:
+```bash
+python3 -c "import base64; open('/tmp/figma-NODE_ID.jpg','wb').write(base64.b64decode('BASE64_DATA_HERE'))"
+```
+Replace `NODE_ID` with the actual node ID and `BASE64_DATA_HERE` with the raw base64 string from Step 1.
+
+**Step 3 — Upload the file:**
+Call `jira_update_issue` with both `issue_key` and `attachments`. The `attachments` value must be the file path as a string:
+```
+jira_update_issue(issue_key="KT-10", attachments="/tmp/figma-NODE_ID.jpg")
+```
+Do NOT pass `fields` alongside `attachments` in the same call — make a dedicated call for attachment upload.
+
+**Step 4 — Clean up:**
+```bash
+python3 -c "import os; os.remove('/tmp/figma-NODE_ID.jpg')"
+```
+
+This procedure is **mandatory** for every Epic and Task. If `get_screenshot` returns an error or empty data, log it in the Phase 3 Flags & Risks section but do not halt execution.
+
+---
+
+Create tickets in this order:
+
+1. Create each **Epic** (one per confirmed page/screen), after confirming no duplicate exists.
+2. Create each **Task** under its parent Epic using `additional_fields: {"epicKey": "EPIC-KEY"}`.
+3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with `additional_fields: {"parent": {"key": "TASK-KEY"}}`. Do NOT embed sub-tasks as text in the Task description.
 
 4. For **Epics**:
    - Place the direct Figma node URL prominently at the top of the description.
-   - Attach a screenshot using the steps above.
-   - Use wiki-link referencing to connect related tickets (e.g., `[[ALPHA-12]]` depends on this layout).
+   - Attach a screenshot using the procedure above.
+   - Use issue-link referencing to connect related tickets (e.g., `[ALPHA-12]` depends on this layout).
    - Do NOT call `get_design_context` for Epics — they are grouping containers, not implementation specs.
-5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Attach a screenshot using the steps above. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
+
+5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Attach a screenshot using the procedure above. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
    - Layout: dimensions, spacing, padding, alignment
    - Typography: font family, size, weight, line height for each text element
    - Colours: fills, borders, and background values (hex or design token name)
@@ -193,6 +169,7 @@ Once the user approves the structure, create tickets using the Jira MCP tools di
    Include a Figma node URL for each breakpoint at the top of its sub-section. Attach the desktop screenshot to the ticket; note the other breakpoint URLs inline.
 
    Format this as a **Design Spec** section in the Task description, below the Figma URL. Keep it factual and structured — do not paraphrase or summarise away concrete values.
+
 6. For **Sub-tasks**, use the following description format:
 
    ```
