@@ -85,17 +85,19 @@ If Phase 2 is interrupted, re-invoke the skill and resume from this phase — th
 
 **Before creating any Epic or Task**, search the Jira project for existing issues with the same name (use `search_issues` or equivalent). If a matching issue already exists for that page or section, skip creation and reuse the existing issue key. Never create duplicate tickets.
 
-**Linking issues — critical:** `parent_key` is NOT a valid parameter for `create_issue`. Use `additional_fields` instead:
+**Linking issues — critical:** `parent_key` is NOT a valid parameter for `create_issue`. Use `additional_fields` instead.
+
+Use `{"parent": {"key": "..."}}` for all parent-child relationships. This works for both team-managed and company-managed Jira projects:
 
 | Relationship | Field to pass in `additional_fields` |
 |---|---|
-| Task → Epic | `{"epicKey": "KT-123"}` |
+| Task → Epic | `{"parent": {"key": "KT-123"}}` |
 | Sub-task → Task | `{"parent": {"key": "KT-456"}}` |
 
 Example Task creation:
 ```
 create_issue(project_key="KT", summary="Hero Section", issue_type="Task",
-             additional_fields={"epicKey": "KT-10"}, description="...")
+             additional_fields={"parent": {"key": "KT-10"}}, description="...")
 ```
 
 Example Sub-task creation:
@@ -104,19 +106,19 @@ create_issue(project_key="KT", summary="Animate CTA button", issue_type="Sub-tas
              additional_fields={"parent": {"key": "KT-11"}}, description="...")
 ```
 
-Do NOT pass `parent_key` or `epic_link` as top-level arguments — they will fail with a Pydantic validation error.
+Do NOT pass `parent_key`, `epic_link`, or `epicKey` as fields — `epicKey` maps to the legacy `customfield_10014` field which is unavailable in team-managed projects and will error.
 
 #### Attaching Screenshots to Tickets
 
 `get_screenshot` returns base64 image data — it cannot be passed directly to Jira. Use this procedure for every Epic and Task:
 
 **Step 1 — Get the screenshot:**
-Call `get_screenshot` with `type: "jpeg"`. The response contains a `content` array with a base64 string. Extract only the base64 data value (not the full response object).
+Call `get_screenshot` with `type: "jpeg"`. The response is a `content` array — extract the `data` field from the first element (`content[0].data`). That value is the raw base64 string.
 
 **Step 2 — Write to a temp file:**
-Run a Bash command using `python3` to decode the base64 and write it to `/tmp/`:
+Pipe the base64 string via stdin to avoid shell argument length limits:
 ```bash
-python3 -c "import base64; open('/tmp/figma-NODE_ID.jpg','wb').write(base64.b64decode('BASE64_DATA_HERE'))"
+echo 'BASE64_DATA_HERE' | python3 -c "import sys, base64; open('/tmp/figma-NODE_ID.jpg','wb').write(base64.b64decode(sys.stdin.read().strip()))"
 ```
 Replace `NODE_ID` with the actual node ID and `BASE64_DATA_HERE` with the raw base64 string from Step 1.
 
@@ -139,7 +141,7 @@ This procedure is **mandatory** for every Epic and Task. If `get_screenshot` ret
 Create tickets in this order:
 
 1. Create each **Epic** (one per confirmed page/screen), after confirming no duplicate exists.
-2. Create each **Task** under its parent Epic using `additional_fields: {"epicKey": "EPIC-KEY"}`.
+2. Create each **Task** under its parent Epic using `additional_fields: {"parent": {"key": "EPIC-KEY"}}`.
 3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with `additional_fields: {"parent": {"key": "TASK-KEY"}}`. Do NOT embed sub-tasks as text in the Task description.
 
 4. For **Epics**:
