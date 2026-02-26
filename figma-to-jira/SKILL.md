@@ -68,7 +68,7 @@ Use the Figma MCP tools directly (do not delegate to subagents):
    - Cross-reference the frame names across breakpoint pages to identify matching screens (e.g., "About" appears on Desktop, Mobile, and Tablet pages).
    - Create **one Epic per screen/section** (e.g., "Epic: About Page"), not one Epic per breakpoint page.
    - Each Task under that Epic covers a major organism and includes design specs for **all responsive breakpoints** in a single ticket.
-   - Fetch metadata and screenshots for each breakpoint variant of a section by using the node IDs from the respective pages.
+   - Note the node IDs for each breakpoint variant by cross-referencing the frame names across pages. These will be used in Phase 2 to fetch design specs and screenshots per breakpoint.
 
 4. Present the user with a proposed backlog structure:
    - List each screen/section → proposed Epic name. Every implementation page or screen must have an Epic — do not omit any.
@@ -147,7 +147,7 @@ Create tickets in this order:
 4. For **Epics**:
    - Place the direct Figma node URL prominently at the top of the description.
    - Attach a screenshot using the procedure above.
-   - Use issue-link referencing to connect related tickets (e.g., `[ALPHA-12]` depends on this layout).
+   - Use issue-link referencing to connect related tickets (e.g., `[PROJ-12]` depends on this layout).
    - Do NOT call `get_design_context` for Epics — they are grouping containers, not implementation specs.
 
 5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Attach a screenshot using the procedure above. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
