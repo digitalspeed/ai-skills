@@ -91,19 +91,19 @@ Use `{"parent": {"key": "..."}}` for all parent-child relationships. This works 
 
 | Relationship | Field to pass in `additional_fields` |
 |---|---|
-| Task → Epic | `{"parent": {"key": "KT-123"}}` |
-| Sub-task → Task | `{"parent": {"key": "KT-456"}}` |
+| Task → Epic | `{"parent": {"key": "PROJ-123"}}` |
+| Sub-task → Task | `{"parent": {"key": "PROJ-456"}}` |
 
 Example Task creation:
 ```
-create_issue(project_key="KT", summary="Hero Section", issue_type="Task",
-             additional_fields={"parent": {"key": "KT-10"}}, description="...")
+create_issue(project_key="PROJ", summary="Hero Section", issue_type="Task",
+             additional_fields={"parent": {"key": "PROJ-10"}}, description="...")
 ```
 
 Example Sub-task creation:
 ```
-create_issue(project_key="KT", summary="Animate CTA button", issue_type="Sub-task",
-             additional_fields={"parent": {"key": "KT-11"}}, description="...")
+create_issue(project_key="PROJ", summary="Animate CTA button", issue_type="Sub-task",
+             additional_fields={"parent": {"key": "PROJ-11"}}, description="...")
 ```
 
 Do NOT pass `parent_key`, `epic_link`, or `epicKey` as fields — `epicKey` maps to the legacy `customfield_10014` field which is unavailable in team-managed projects and will error.
@@ -125,7 +125,7 @@ Replace `NODE_ID` with the actual node ID and `BASE64_DATA_HERE` with the raw ba
 **Step 3 — Upload the file:**
 Call `jira_update_issue` with both `issue_key` and `attachments`. The `attachments` value must be the file path as a string:
 ```
-jira_update_issue(issue_key="KT-10", attachments="/tmp/figma-NODE_ID.jpg")
+jira_update_issue(issue_key="PROJ-10", attachments="/tmp/figma-NODE_ID.jpg")
 ```
 Do NOT pass `fields` alongside `attachments` in the same call — make a dedicated call for attachment upload.
 
