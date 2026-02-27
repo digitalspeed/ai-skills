@@ -23,7 +23,7 @@ The skill requires a Figma file URL and Jira project key. Check the conversation
 | Input | Example | Required |
 |---|---|---|
 | **Figma file URL** | `https://www.figma.com/design/abc123/My-App` | Yes |
-| **Jira project key** | `ALPHA` | Yes |
+| **Jira project key** | `MA` | Yes |
 
 ## 3. The "Organism" Constraint
 
@@ -112,6 +112,8 @@ Do NOT pass `parent_key`, `epic_link`, or `epicKey` as fields — `epicKey` maps
 
 `get_screenshot` returns base64 image data — it cannot be passed directly to Jira. Use this procedure for every Epic and Task:
 
+**Call screenshots sequentially — never in parallel.** Parallel calls will trigger the Figma MCP rate limit. Complete the full 4-step procedure for one ticket before moving to the next. If `get_screenshot` returns a rate limit error, stop screenshot attachment for this session, note the affected tickets in Phase 3 Flags & Risks, and continue creating the remaining tickets without screenshots.
+
 **Step 1 — Get the screenshot:**
 Call `get_screenshot` with `type: "jpeg"`. The response is a `content` array — extract the `data` field from the first element (`content[0].data`). That value is the raw base64 string.
 
@@ -138,19 +140,19 @@ This procedure is **mandatory** for every Epic and Task. If `get_screenshot` ret
 
 ---
 
-Create tickets in this order:
+Create tickets in this order. **Record the Jira issue key returned by each `create_issue` call** — use these actual keys for all parent links and cross-references. Never guess or invent issue keys.
 
 1. Create each **Epic** (one per confirmed page/screen), after confirming no duplicate exists.
 2. Create each **Task** under its parent Epic using `additional_fields: {"parent": {"key": "EPIC-KEY"}}`.
 3. Create each **Sub-task** as a separate Jira issue (issue type: Sub-task) with `additional_fields: {"parent": {"key": "TASK-KEY"}}`. Do NOT embed sub-tasks as text in the Task description.
 
 4. For **Epics**:
-   - Place the direct Figma node URL prominently at the top of the description.
+   - Place the Figma node URL as a clickable markdown link at the top of the description: `[File Name / Page / Frame Name](URL)`. Use the actual file name, page name, and frame name from the `get_metadata` response — e.g. `[Kord Website / Desktop / About](https://...)`.
    - Attach a screenshot using the procedure above.
-   - Use issue-link referencing to connect related tickets (e.g., `[PROJ-12]` depends on this layout).
+   - If this Epic depends on another issue (e.g. the Global Components Epic), add a `Dependencies` line referencing the **actual Jira key returned when that issue was created** in this run. Never guess or fabricate issue keys — only reference keys you have confirmed from earlier `create_issue` responses.
    - Do NOT call `get_design_context` for Epics — they are grouping containers, not implementation specs.
 
-5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Attach a screenshot using the procedure above. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
+5. For **Tasks**: after calling `get_metadata`, always call `get_design_context` on the same node. Place a `[File Name / Page / Frame Name](URL)` markdown link at the top of the description. Attach a screenshot using the procedure above. Extract and embed the following into the Task description so a developer or implementation agent can build from the ticket alone, without Figma access:
    - Layout: dimensions, spacing, padding, alignment
    - Typography: font family, size, weight, line height for each text element
    - Colours: fills, borders, and background values (hex or design token name)
@@ -172,14 +174,14 @@ Create tickets in this order:
    [specs from mobile page node]
    ```
 
-   Include a Figma node URL for each breakpoint at the top of its sub-section. Attach the desktop screenshot to the ticket; note the other breakpoint URLs inline.
+   Include a `[File Name / Page / Frame Name](URL)` link for each breakpoint at the top of its sub-section. Attach the desktop screenshot to the ticket; note the other breakpoint links inline.
 
    Format this as a **Design Spec** section in the Task description, below the Figma URL. Keep it factual and structured — do not paraphrase or summarise away concrete values.
 
 6. For **Sub-tasks**, use the following description format:
 
    ```
-   [Figma node URL]
+   [View in Figma](URL)
 
    [What this sub-task implements — concrete, verifiable details.]
 

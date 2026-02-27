@@ -98,8 +98,8 @@ The agent will find the correct persona and generate a markdown blog post about 
          "command": "uvx",
          "args": ["mcp-atlassian@latest"],
          "env": {
-           "JIRA_URL": "https://your-instance.atlassian.net",
-           "JIRA_USERNAME": "you@digitalspeed.com",
+           "JIRA_URL": "https://digitalspeed.atlassian.net",
+           "JIRA_USERNAME": "you@digitalspeed.co.uk",
            "JIRA_API_TOKEN": "your-api-token"
          }
        }
